@@ -1,0 +1,257 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  width: 360px;
+  min-height: 200px;
+}
+
+.popup {
+  padding: 16px;
+}
+
+header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #333;
+}
+
+header h1 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #888;
+}
+
+/* ── Rules ─────────────────────────────────── */
+
+.rules-list {
+  margin-bottom: 12px;
+}
+
+.empty-state {
+  color: #666;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.rule-card {
+  background: #222;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-left: 3px solid #51cf66;
+}
+
+.rule-card.blocked {
+  border-left-color: #ff6b6b;
+}
+
+.rule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.rule-domain {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.rule-remove {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.rule-remove:hover {
+  color: #ff6b6b;
+}
+
+.rule-budget {
+  margin-bottom: 6px;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #51cf66;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.progress-fill.exhausted {
+  background: #ff6b6b;
+}
+
+.budget-text {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.rule-blocked {
+  font-size: 0.75rem;
+  color: #ff6b6b;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.rule-remaining {
+  font-size: 0.75rem;
+  color: #51cf66;
+  margin-bottom: 4px;
+}
+
+.rule-stats {
+  font-size: 0.65rem;
+  color: #666;
+}
+
+/* ── Add Rule Form ─────────────────────────── */
+
+.add-section {
+  margin-bottom: 12px;
+}
+
+.add-toggle,
+.settings-toggle {
+  background: none;
+  border: 1px dashed #444;
+  color: #888;
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+}
+
+.add-toggle:hover,
+.settings-toggle:hover {
+  border-color: #666;
+  color: #bbb;
+}
+
+.add-form,
+.settings-form {
+  background: #222;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.form-row {
+  margin-bottom: 10px;
+}
+
+.form-row-split {
+  display: flex;
+  gap: 8px;
+}
+
+.form-field {
+  flex: 1;
+}
+
+.form-field label {
+  display: block;
+  font-size: 0.7rem;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #e0e0e0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #555;
+}
+
+.checkbox-label {
+  font-size: 0.75rem;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn {
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #228be6;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1c7ed6;
+}
+
+.btn-secondary {
+  background: #333;
+  color: #bbb;
+}
+
+.btn-secondary:hover {
+  background: #444;
+}
+
+/* ── Settings ──────────────────────────────── */
+
+.settings-section {
+  margin-top: 4px;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 12px 0;
+}
