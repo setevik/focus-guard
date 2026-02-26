@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusGuard — Site Blocked</title>
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>FocusGuard</h1>
+      <p class="domain" id="domain-name"></p>
+    </div>
+
+    <div class="countdown-section">
+      <p class="countdown-label">Available again in</p>
+      <p class="countdown" id="countdown"></p>
+    </div>
+
+    <div class="stats-section">
+      <h2>Usage Statistics</h2>
+      <div class="stats-tabs">
+        <button class="stats-tab active" data-period="today">Today</button>
+        <button class="stats-tab" data-period="week">Last 7 days</button>
+        <button class="stats-tab" data-period="month">Last 30 days</button>
+      </div>
+      <div class="stats-display">
+        <p class="stats-value" id="stats-value">—</p>
+        <p class="stats-unit">of active browsing time</p>
+      </div>
+    </div>
+
+    <div class="rule-info" id="rule-info"></div>
+  </div>
+
+  <script src="blocked.js" type="module"></script>
+</body>
+</html>
