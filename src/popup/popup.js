@@ -133,20 +133,33 @@ function renderSettings(settings) {
 addFormEl.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const domain = document.getElementById('input-domain').value.trim().toLowerCase();
+  const domainInput = document.getElementById('input-domain');
+  const domain = domainInput.value.trim();
   const allowedMinutes = parseInt(document.getElementById('input-minutes').value, 10);
   const windowMinutes = parseInt(document.getElementById('input-window').value, 10);
   const matchSubdomains = document.getElementById('input-subdomains').checked;
 
   if (!domain || !allowedMinutes || !windowMinutes) return;
 
-  await browser.runtime.sendMessage({
+  // Clear previous error
+  const existingError = addFormEl.querySelector('.form-error');
+  if (existingError) existingError.remove();
+
+  const result = await browser.runtime.sendMessage({
     type: 'add-rule',
     rule: { domain, allowedMinutes, windowMinutes, matchSubdomains },
   });
 
+  if (result && !result.success) {
+    const errorEl = document.createElement('p');
+    errorEl.className = 'form-error';
+    errorEl.textContent = result.error || 'Invalid domain';
+    addFormEl.prepend(errorEl);
+    return;
+  }
+
   // Reset form
-  document.getElementById('input-domain').value = '';
+  domainInput.value = '';
   document.getElementById('input-minutes').value = '5';
   document.getElementById('input-window').value = '180';
   document.getElementById('input-subdomains').checked = true;
