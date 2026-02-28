@@ -160,6 +160,12 @@ header h1 {
   padding: 12px;
 }
 
+.form-error {
+  color: #ff6b6b;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+
 .hidden {
   display: none !important;
 }
