@@ -6,7 +6,7 @@
  * - Budget enforcement (block when exhausted)
  * - History scrubbing for blocked domains
  * - Message handling from content scripts and popup
- * - Periodic usage compaction/pruning
+ * - Periodic usage compaction/pruning and sync
  *
  * IMPORTANT: All event listeners are registered synchronously at the
  * top level so the event page can be properly woken up by Firefox.
@@ -16,7 +16,8 @@ import { getDomainFromUrl, findMatchingRule } from '../lib/domain.js';
 import {
   getRules, getSettings, getAllUsage, recordUsage,
   getUsageInWindow, getTimeUntilUnblock, getUsageStats,
-  pruneOldUsage, getDeviceId, addRule, removeRule, saveSettings,
+  pruneOldUsage, syncUsageSummary, getDeviceId,
+  addRule, removeRule, saveSettings,
 } from '../lib/storage.js';
 
 // ── State ──────────────────────────────────────────────────────
@@ -93,7 +94,6 @@ browser.storage.onChanged.addListener(async (changes, areaName) => {
     settings = { ...settings, ...changes.settings.newValue };
     browser.idle.setDetectionInterval(settings.idleThresholdSeconds);
 
-    // Restart heartbeat with new interval if active
     if (heartbeatTimer) {
       stopHeartbeat();
       if (trackedDomain && idleState === 'active') {
@@ -115,15 +115,18 @@ browser.webRequest.onBeforeRequest.addListener(
 
 browser.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'prune-usage') {
-    pruneOldUsage();
+    pruneOldUsage().then(() => syncUsageSummary());
   } else if (alarm.name === 'history-scrub') {
     scrubAllBlockedHistory();
+  } else if (alarm.name === 'sync-usage') {
+    syncUsageSummary();
   }
 });
 
-// Set up periodic alarms
+// Periodic alarms
 browser.alarms.create('prune-usage', { periodInMinutes: 60 });
 browser.alarms.create('history-scrub', { periodInMinutes: 10 });
+browser.alarms.create('sync-usage', { periodInMinutes: 5 });
 
 // ── Initial load ───────────────────────────────────────────────
 
@@ -165,7 +168,6 @@ async function evaluateTab(tabId) {
   const rule = findMatchingRule(tab.url, currentRules);
   if (!rule) return;
 
-  // Check if blocked
   const blocked = await isDomainBlocked(domain, rule);
   if (blocked) {
     redirectToBlocked(tabId, domain);
@@ -206,7 +208,6 @@ function onBeforeRequest(details) {
   const rule = findMatchingRule(details.url, currentRules);
   if (!rule) return {};
 
-  // Use cached blocked set for synchronous check
   if (blockedDomains.has(domain)) {
     const blockedUrl = browser.runtime.getURL(
       `src/blocked/blocked.html?domain=${encodeURIComponent(domain)}`
@@ -238,7 +239,6 @@ function startHeartbeat() {
 
 function stopHeartbeat() {
   if (heartbeatTimer) {
-    // Record any partial time since last tick
     if (lastHeartbeatTime && trackedDomain) {
       const elapsed = (Date.now() - lastHeartbeatTime) / 1000;
       if (elapsed >= 1) {
@@ -261,13 +261,12 @@ async function onHeartbeatTick() {
   const elapsed = lastHeartbeatTime ? (now - lastHeartbeatTime) / 1000 : settings.heartbeatIntervalSeconds;
   lastHeartbeatTime = now;
 
-  // Detect gaps (e.g., Android suspension) — if elapsed > 2x interval, assume inactive
+  // Detect gaps (e.g., Android suspension) — cap at 2x interval
   const maxExpected = settings.heartbeatIntervalSeconds * 2;
   const secondsToRecord = elapsed > maxExpected ? settings.heartbeatIntervalSeconds : Math.round(elapsed);
 
   await recordUsage(trackedDomain, secondsToRecord);
 
-  // Check if budget is now exhausted
   const rule = currentRules.find(r => r.domain === trackedDomain);
   if (rule) {
     const blocked = await isDomainBlocked(trackedDomain, rule);
@@ -282,7 +281,6 @@ async function onHeartbeatTick() {
     }
   }
 
-  // Periodically refresh blocked domains cache
   await refreshBlockedDomains();
 }
 
@@ -351,7 +349,7 @@ function onMessage(message, sender) {
             domain: rule.domain,
             allowedMinutes: rule.allowedMinutes,
             windowMinutes: rule.windowMinutes,
-            usedSeconds,
+            usedSeconds: Math.round(usedSeconds),
             allowedSeconds,
             blocked,
             timeUntilUnblock,
@@ -380,7 +378,7 @@ function onMessage(message, sender) {
           domain,
           allowedMinutes: rule.allowedMinutes,
           windowMinutes: rule.windowMinutes,
-          usedSeconds,
+          usedSeconds: Math.round(usedSeconds),
           timeUntilUnblock,
           stats,
         };
@@ -390,10 +388,13 @@ function onMessage(message, sender) {
     case 'add-rule':
       return (async () => {
         await ensureInitialized();
-        const updated = await addRule(message.rule);
-        currentRules = updated;
+        const result = await addRule(message.rule);
+        if (result.error) {
+          return { success: false, error: result.error };
+        }
+        currentRules = result.rules;
         await refreshBlockedDomains();
-        return { success: true, rules: updated };
+        return { success: true, rules: result.rules };
       })();
 
     case 'remove-rule':
